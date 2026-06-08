@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Umbrella Custom — Gerador de Orçamentos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!-- ════ BACKGROUND FOTOS ════ -->
+    <div class="bg-photos" aria-hidden="true">
+      <div class="bg-photo" style="background-image: url('/photos/photo-1.jpg')"></div>
+      <div class="bg-photo" style="background-image: url('/photos/photo-2.jpg')"></div>
+      <div class="bg-photo" style="background-image: url('/photos/photo-4.jpg')"></div>
+    </div>
+
+    <!-- ════ HEADER ════ -->
+    <header class="app-header">
+      <img src="/logo.png" alt="Umbrella Custom" class="header-logo" />
+      <div class="header-text">
+        <h1>Gerador de Orçamentos</h1>
+        <p>Umbrella Custom</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- ════ TABS ════ -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="quote">Orçamento</button>
+        <button class="tab-btn" data-tab="register">Cadastrar Pedido</button>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+       TAB 1 — ORÇAMENTO RÁPIDO
+       ════════════════════════════════════════════ -->
+      <div id="tab-quote" class="tab-content">
+        <div id="error-box" class="error-box" style="display: none"></div>
+
+        <!-- Nome do Cliente -->
+        <section class="card">
+          <h2 class="card-title">Cliente</h2>
+          <div class="field-group">
+            <label for="client-name">Nome *</label>
+            <input
+              type="text"
+              id="client-name"
+              placeholder="Nome do cliente ou turma"
+              autocomplete="off"
+            />
+          </div>
+        </section>
+
+        <!-- Itens -->
+        <section class="card">
+          <div class="card-title-row">
+            <h2 class="card-title">Itens do Pedido</h2>
+            <button type="button" id="add-item-btn" class="btn-secondary">
+              + Adicionar Produto
+            </button>
+          </div>
+
+          <div id="items-list" class="items-list"></div>
+
+          <div class="summary-bar">
+            <div class="summary-stat">
+              <span class="stat-label">Total de peças</span>
+              <span class="stat-value" id="total-qty-display">0</span>
+            </div>
+            <div class="summary-stat" id="band-section" style="display: none">
+              <span class="stat-label">Faixa de preço</span>
+              <span class="band-value" id="band-display">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Ações -->
+        <div class="actions-bar">
+          <button type="button" id="clear-btn" class="btn-ghost">Limpar</button>
+          <button type="button" id="generate-btn" class="btn-primary" disabled>
+            Gerar Orçamento →
+          </button>
+        </div>
+      </div>
+      <!-- /tab-quote -->
+
+      <!-- ════════════════════════════════════════════
+       TAB 2 — CADASTRAR PEDIDO NO NOTION
+       ════════════════════════════════════════════ -->
+      <div id="tab-register" class="tab-content" style="display: none">
+        <div id="reg-error-box" class="error-box" style="display: none"></div>
+        <div id="reg-success-box" class="success-box" style="display: none">
+          ✓ Pedido cadastrado no Notion com sucesso!
+        </div>
+
+        <!-- Dados do Cliente -->
+        <section class="card">
+          <h2 class="card-title">Dados do Cliente</h2>
+
+          <div class="type-toggle" style="margin-bottom: 20px">
+            <label class="toggle-option">
+              <input type="radio" name="reg-client-type" value="pf" checked />
+              <span>Pessoa Física</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="reg-client-type" value="pj" />
+              <span>Pessoa Jurídica</span>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-group field-wide">
+              <label for="reg-client-name">Nome *</label>
+              <input
+                type="text"
+                id="reg-client-name"
+                placeholder="Nome do cliente ou Razão Social"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field-group">
+              <label id="reg-doc-label" for="reg-document">CPF</label>
+              <input
+                type="text"
+                id="reg-document"
+                placeholder="000.000.000-00"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field-group">
+              <label for="reg-phone">Telefone *</label>
+              <input type="tel" id="reg-phone" placeholder="(00) 00000-0000" autocomplete="tel" />
+            </div>
+            <div class="field-group">
+              <label for="reg-email">E-mail</label>
+              <input
+                type="email"
+                id="reg-email"
+                placeholder="cliente@email.com"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Endereço de Faturamento -->
+        <section class="card">
+          <h2 class="card-title">Endereço de Faturamento</h2>
+          <div class="form-grid">
+            <div class="field-group field-sm">
+              <label for="reg-billing-cep">CEP</label>
+              <input
+                type="text"
+                id="reg-billing-cep"
+                placeholder="00000-000"
+                maxlength="9"
+                autocomplete="postal-code"
+              />
+            </div>
+            <div class="field-group field-wide">
+              <label for="reg-billing-logradouro">Logradouro</label>
+              <input type="text" id="reg-billing-logradouro" placeholder="Rua, Avenida..." />
+            </div>
+            <div class="field-group field-sm">
+              <label for="reg-billing-numero">Número</label>
+              <input type="text" id="reg-billing-numero" placeholder="Nº" />
+            </div>
+            <div class="field-group">
+              <label for="reg-billing-complemento">Complemento</label>
+              <input type="text" id="reg-billing-complemento" placeholder="Apto, Sala..." />
+            </div>
+            <div class="field-group">
+              <label for="reg-billing-bairro">Bairro</label>
+              <input type="text" id="reg-billing-bairro" placeholder="Bairro" />
+            </div>
+            <div class="field-group">
+              <label for="reg-billing-cidade">Cidade</label>
+              <input type="text" id="reg-billing-cidade" placeholder="Cidade" />
+            </div>
+            <div class="field-group field-xs">
+              <label for="reg-billing-uf">UF</label>
+              <input type="text" id="reg-billing-uf" placeholder="UF" maxlength="2" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Endereço de Entrega -->
+        <section class="card">
+          <h2 class="card-title">Endereço de Entrega</h2>
+          <label class="checkbox-label">
+            <input type="checkbox" id="reg-same-address" checked />
+            <span>Mesmo endereço de faturamento</span>
+          </label>
+          <div id="reg-delivery-address-section" style="display: none">
+            <div class="form-grid" style="margin-top: 1rem">
+              <div class="field-group field-sm">
+                <label for="reg-delivery-cep">CEP</label>
+                <input type="text" id="reg-delivery-cep" placeholder="00000-000" maxlength="9" />
+              </div>
+              <div class="field-group field-wide">
+                <label for="reg-delivery-logradouro">Logradouro</label>
+                <input type="text" id="reg-delivery-logradouro" placeholder="Rua, Avenida..." />
+              </div>
+              <div class="field-group field-sm">
+                <label for="reg-delivery-numero">Número</label>
+                <input type="text" id="reg-delivery-numero" placeholder="Nº" />
+              </div>
+              <div class="field-group">
+                <label for="reg-delivery-complemento">Complemento</label>
+                <input type="text" id="reg-delivery-complemento" placeholder="Apto, Sala..." />
+              </div>
+              <div class="field-group">
+                <label for="reg-delivery-bairro">Bairro</label>
+                <input type="text" id="reg-delivery-bairro" placeholder="Bairro" />
+              </div>
+              <div class="field-group">
+                <label for="reg-delivery-cidade">Cidade</label>
+                <input type="text" id="reg-delivery-cidade" placeholder="Cidade" />
+              </div>
+              <div class="field-group field-xs">
+                <label for="reg-delivery-uf">UF</label>
+                <input type="text" id="reg-delivery-uf" placeholder="UF" maxlength="2" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Orçamento PDF -->
+        <section class="card">
+          <h2 class="card-title">Orçamento</h2>
+          <p class="reg-hint">Anexe o PDF do orçamento gerado anteriormente.</p>
+          <div class="field-group">
+            <label for="reg-pdf-file">Arquivo PDF</label>
+            <input type="file" id="reg-pdf-file" accept="application/pdf,.pdf" class="file-input" />
+          </div>
+          <div id="reg-file-name" class="file-name-display" style="display: none"></div>
+        </section>
+
+        <!-- Observações -->
+        <section class="card">
+          <h2 class="card-title">Observações</h2>
+          <div class="field-group">
+            <label for="reg-notes">Observações internas</label>
+            <textarea
+              id="reg-notes"
+              rows="3"
+              placeholder="Prazo combinado, condições de pagamento..."
+            ></textarea>
+          </div>
+        </section>
+
+        <!-- Ação -->
+        <div class="actions-bar">
+          <button type="button" id="submit-notion-btn" class="btn-primary">
+            Cadastrar Pedido no Notion
+          </button>
+        </div>
+      </div>
+      <!-- /tab-register -->
+    </main>
+
+    <footer class="app-footer">
+      <p>Umbrella Custom · Catálogo 2026</p>
+    </footer>
+
+    <script src="/bundle.js"></script>
+  </body>
+</html>
