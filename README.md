@@ -93,16 +93,6 @@ NOTION_DATABASE_ID=...
 
 These are required for the **Register Order** tab. The Quote tab works without them.
 
-## Deploying to Render
-
-The [render.yaml](render.yaml) file configures automatic deployment:
-
-- **Build:** `npm install && npm run build`
-- **Start:** `npm start`
-- **Env:** `NODE_ENV=production`
-
-Set `NOTION_TOKEN` and `NOTION_DATABASE_ID` as environment variables in the Render dashboard. Connect the repository and every push triggers a new deploy automatically.
-
 ## Price tiers
 
 Prices vary based on the total number of pieces across all items:
