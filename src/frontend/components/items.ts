@@ -36,6 +36,13 @@ function renderItem(item: QuoteItem, index: number): string {
           .map(c => `<option value="${c}"${c === item.color ? ' selected' : ''}>${c}</option>`)
           .join('')}
       </select>
+    </div>
+    <div class="field-group field-sm">
+      <label>Adicional/peça (R$)</label>
+      <input type="number" min="0" step="0.50" placeholder="0,00"
+        value="${item.extra > 0 ? item.extra : ''}"
+        data-action="extra" data-item-id="${item.id}"
+        class="qty-input">
     </div>`
     : '';
 
@@ -155,6 +162,9 @@ export function setupItemsContainer(): void {
     } else if (target.matches('[data-action="qty"]')) {
       const size = (target as HTMLInputElement).dataset.size!;
       item.quantities[size] = parseInt((target as HTMLInputElement).value) || 0;
+      updateSummary();
+    } else if (target.matches('[data-action="extra"]')) {
+      item.extra = parseFloat((target as HTMLInputElement).value) || 0;
       updateSummary();
     }
   });

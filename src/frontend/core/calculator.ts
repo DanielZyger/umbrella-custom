@@ -29,8 +29,9 @@ export function getUnitPrice(product: Product, size: string, band: PriceBand): n
 export function getItemSubtotal(item: QuoteItem, band: PriceBand): number {
   const product = PRODUCTS.find(p => p.id === item.productId);
   if (!product) return 0;
+  const extra = item.extra ?? 0;
   return Object.entries(item.quantities).reduce((sum, [size, qty]) => {
-    return sum + (qty > 0 ? getUnitPrice(product, size, band) * qty : 0);
+    return sum + (qty > 0 ? (getUnitPrice(product, size, band) + extra) * qty : 0);
   }, 0);
 }
 

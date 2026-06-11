@@ -23,10 +23,17 @@ function fmtDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
+function addDays(isoDate: string, days: number): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl: string): string {
   const activeItems = data.items.filter(i => i.productId && i.color && getItemQuantity(i) > 0);
   const totalQty = activeItems.reduce((s, i) => s + getItemQuantity(i), 0);
   const grandTotal = getGrandTotal(activeItems, band);
+  const validUntil = fmtDate(addDays(data.date, 7));
 
   const detailSections = activeItems
     .map((item, idx) => {
@@ -34,10 +41,11 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
       const itemQty = getItemQuantity(item);
       const itemSubtotal = getItemSubtotal(item, band);
 
+      const extra = item.extra ?? 0;
       const sizeRows = Object.entries(item.quantities)
         .filter(([, q]) => q > 0)
         .map(([size, qty]) => {
-          const unit = getUnitPrice(product, size, band);
+          const unit = getUnitPrice(product, size, band) + extra;
           return `<tr>
           <td>${size}</td>
           <td class="num">${qty}</td>
@@ -57,7 +65,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
         <span class="product-index">${String(idx + 1).padStart(2, '0')}</span>
         <div class="product-info">
           <span class="product-name">${esc(product.name)}</span>
-          <span class="product-meta">Cor: ${esc(item.color)} &nbsp;·&nbsp; ${itemQty} ${itemQty === 1 ? 'peça' : 'peças'} &nbsp;·&nbsp; Faixa ${fmtBand(band)}</span>
+          <span class="product-meta">Cor: ${esc(item.color)} &nbsp;·&nbsp; ${itemQty} ${itemQty === 1 ? 'peça' : 'peças'} &nbsp;·&nbsp; Faixa ${fmtBand(band)}${extra > 0 ? ` &nbsp;·&nbsp; +${fmtCurrency(extra)}/peça` : ''}</span>
         </div>
         <span class="product-subtotal">${fmtCurrency(itemSubtotal)}</span>
       </div>
@@ -79,13 +87,18 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
       const product = PRODUCTS.find(p => p.id === item.productId)!;
       const quantity = getItemQuantity(item);
       const sub = getItemSubtotal(item, band);
+      const itemExtra = item.extra ?? 0;
+      const extraNote =
+        itemExtra > 0
+          ? `<tr class="note-row"><td colspan="5">+ ${fmtCurrency(itemExtra)}/peça (adicional)</td></tr>`
+          : '';
       return `<tr>
       <td>${esc(product.name)}</td>
       <td>${esc(item.color)}</td>
       <td class="num">${quantity}</td>
       <td class="num">${fmtCurrency(product.prices[band])}</td>
       <td class="num">${fmtCurrency(sub)}</td>
-    </tr>`;
+    </tr>${extraNote}`;
     })
     .join('');
 
@@ -96,7 +109,10 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 <title>Orçamento ${esc(data.number)} — ${esc(data.clientName)}</title>
 <style>
   /* ── PAGE ──────────────────────────────── */
-  @page { size: A4 portrait; margin: 0; }
+  /* Subsequent pages: 1.3cm top margin holds the fixed repeat header */
+  @page { size: A4 portrait; margin: 1.3cm 0 0; }
+  /* First page: no top margin — repeat header overlaps doc-header (both #111, invisible) */
+  @page :first { margin-top: 0; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -106,6 +122,9 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     color: #111;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* ── REPEAT PAGE HEADER (print only) ───── */
+  .page-header-repeat { display: none; }
 
   /* ── SCREEN VIEW ───────────────────────── */
   @media screen {
@@ -133,11 +152,69 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     body { background: #fff; }
     .doc-page { width: 100%; }
     .screen-toolbar { display: none !important; }
-    /* Força o browser a imprimir cores de fundo (header, total block, etc.) */
     * {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+
+    /* Compact header fixed in the top margin of every print page.
+       top: -1.3cm pushes it into the @page margin area, above the content flow. */
+    .page-header-repeat {
+      display: flex;
+      position: fixed;
+      top: -1.3cm;
+      left: 0;
+      right: 0;
+      height: 1.3cm;
+      background: #111;
+      color: #fff;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.4cm;
+      z-index: 9999;
+    }
+  }
+
+  /* ── REPEAT HEADER INTERNALS ────────────── */
+  .phr-left { display: flex; align-items: center; gap: 0.45cm; }
+
+  .phr-logo {
+    height: 26px;
+    width: 26px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+  }
+
+  .phr-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+
+  .phr-name {
+    display: block;
+    font-size: 8.5pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .phr-sub {
+    display: block;
+    font-size: 5.5pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.4;
+  }
+
+  .phr-docref {
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.5;
   }
 
   /* ── TOOLBAR BUTTONS ────────────────────── */
@@ -174,7 +251,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.9cm 1.4cm;
+    padding: 1cm 1.4cm;
     border-bottom: 3px solid #fff;
     gap: 1cm;
   }
@@ -182,14 +259,14 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   .doc-header-left { display: flex; align-items: center; gap: 0.7cm; }
 
   .doc-logo {
-    height: 56px;
-    width: 56px;
+    height: 72px;
+    width: 72px;
     object-fit: contain;
     filter: brightness(0) invert(1);
     flex-shrink: 0;
   }
 
-  .doc-company { display: flex; flex-direction: column; gap: 3px; }
+  .doc-company { display: flex; flex-direction: column; gap: 4px; }
 
   .doc-company-name {
     font-size: 15pt;
@@ -209,7 +286,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 
   .doc-header-divider {
     width: 1px;
-    height: 40px;
+    height: 48px;
     background: rgba(255,255,255,0.15);
     flex-shrink: 0;
   }
@@ -240,7 +317,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   /* ── META GRID ──────────────────────────── */
   .doc-meta {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
     border: 1.5px solid #111;
     margin-bottom: 1cm;
   }
@@ -272,7 +349,11 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   }
 
   /* ── PRODUCT BLOCKS ─────────────────────── */
-  .product-block { margin-bottom: 0.9cm; break-inside: avoid; }
+  .product-block {
+    margin-bottom: 0.9cm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
   .product-header {
     display: flex;
@@ -322,6 +403,8 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     width: 100%;
     border-collapse: collapse;
     font-size: 9pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   th {
@@ -337,6 +420,11 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 
   td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
 
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   td.num, th.num { text-align: right; }
 
   .note-row td {
@@ -348,7 +436,11 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   }
 
   /* ── SUMMARY SECTION ────────────────────── */
-  .summary-section { break-before: page; padding-top: 0.2cm; }
+  .summary-section {
+    padding-top: 0.5cm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
   .summary-label {
     font-size: 18pt;
@@ -370,6 +462,8 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     display: flex;
     align-items: center;
     justify-content: space-between;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .total-left { display: flex; flex-direction: column; gap: 3px; }
@@ -393,25 +487,6 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
     letter-spacing: -0.02em;
   }
 
-  /* ── NOTES ──────────────────────────────── */
-  .notes-block {
-    margin-top: 0.6cm;
-    padding: 0.5cm 0.6cm;
-    border-left: 3px solid #111;
-    background: #fafafa;
-    font-size: 9pt;
-    line-height: 1.7;
-    color: #333;
-  }
-
-  .notes-label {
-    font-size: 6.5pt;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #999;
-  }
-
   /* ── FOOTER ─────────────────────────────── */
   .doc-footer {
     margin-top: 0.8cm;
@@ -426,6 +501,19 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 </head>
 <body>
 
+<!-- Compact header repeated on every print page (hidden on screen) -->
+<div class="page-header-repeat">
+  <div class="phr-left">
+    <img src="${logoUrl}" class="phr-logo" alt="Umbrella Custom">
+    <div class="phr-divider"></div>
+    <div>
+      <span class="phr-name">Umbrella Custom</span>
+      <span class="phr-sub">Camisetas Personalizadas</span>
+    </div>
+  </div>
+  <span class="phr-docref">Orçamento &nbsp;·&nbsp; ${esc(data.number)}</span>
+</div>
+
 <div class="screen-toolbar">
   <button class="toolbar-btn toolbar-btn-ghost" onclick="window.close()">✕ Fechar</button>
   <button class="toolbar-btn toolbar-btn-primary" onclick="window.print()">⬇ Salvar / Imprimir PDF</button>
@@ -433,7 +521,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 
 <div class="doc-page">
 
-  <!-- HEADER -->
+  <!-- HEADER (screen only — hidden in print, replaced by page-header-repeat) -->
   <header class="doc-header">
     <div class="doc-header-left">
       <img src="${logoUrl}" class="doc-logo" alt="Umbrella Custom">
@@ -465,12 +553,16 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
         <span class="meta-label">Faixa · Peças</span>
         <span class="meta-value">${fmtBand(band)} · ${totalQty}</span>
       </div>
+      <div class="meta-item">
+        <span class="meta-label">Válido até</span>
+        <span class="meta-value">${validUntil}</span>
+      </div>
     </div>
 
     <!-- DETAIL -->
     ${detailSections}
 
-    <!-- SUMMARY -->
+    <!-- SUMMARY (flows after items, no forced page break) -->
     <div class="summary-section">
       <span class="summary-label">Resumo do Pedido</span>
 
@@ -495,6 +587,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
 
       <div class="doc-footer">
         <span>Umbrella Custom — Catálogo 2026</span>
+        <span>Orçamento válido até ${validUntil}</span>
       </div>
     </div>
 

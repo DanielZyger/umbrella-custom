@@ -230,15 +230,33 @@
           </div>
         </section>
 
-        <!-- Orçamento PDF -->
+        <!-- Orçamento PDF + Pagamento -->
         <section class="card">
           <h2 class="card-title">Orçamento</h2>
           <p class="reg-hint">Anexe o PDF do orçamento gerado anteriormente.</p>
-          <div class="field-group">
-            <label for="reg-pdf-file">Arquivo PDF</label>
-            <input type="file" id="reg-pdf-file" accept="application/pdf,.pdf" class="file-input" />
+          <div class="form-grid">
+            <div class="field-group field-wide">
+              <label for="reg-pdf-file">Arquivo PDF</label>
+              <input
+                type="file"
+                id="reg-pdf-file"
+                accept="application/pdf,.pdf"
+                class="file-input"
+              />
+              <div id="reg-file-name" class="file-name-display" style="display: none"></div>
+            </div>
+            <div class="field-group field-sm">
+              <label for="reg-paid-pct">Entrada paga (%)</label>
+              <input
+                type="number"
+                id="reg-paid-pct"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="0"
+              />
+            </div>
           </div>
-          <div id="reg-file-name" class="file-name-display" style="display: none"></div>
         </section>
 
         <!-- Observações -->

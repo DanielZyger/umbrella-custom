@@ -4,7 +4,7 @@ let _items: QuoteItem[] = [];
 let _nextId = 1;
 
 function newItem(): QuoteItem {
-  return { id: String(_nextId++), productId: '', color: '', quantities: {} };
+  return { id: String(_nextId++), productId: '', color: '', quantities: {}, extra: 0 };
 }
 
 export function getItems(): QuoteItem[] {

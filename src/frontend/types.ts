@@ -29,6 +29,7 @@ export interface QuoteItem {
   productId: string;
   color: string;
   quantities: Record<string, number>;
+  extra: number;
 }
 
 export interface QuickQuoteData {
@@ -47,6 +48,7 @@ export interface OrderRegistration {
   notes: string;
   itemsSummary: string;
   totalAmount: number;
+  paidPercentage: number;
   billingAddress: Address;
   deliveryAddress?: Address;
 }

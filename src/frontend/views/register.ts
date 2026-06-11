@@ -75,6 +75,10 @@ async function submitOrder(): Promise<void> {
     .join('\n');
 
   const sameAddress = (document.getElementById('reg-same-address') as HTMLInputElement).checked;
+  const paidPercentage = Math.min(
+    100,
+    Math.max(0, parseInt((document.getElementById('reg-paid-pct') as HTMLInputElement).value) || 0),
+  );
   const order: OrderRegistration = {
     clientName,
     clientType: getClientType(),
@@ -84,6 +88,7 @@ async function submitOrder(): Promise<void> {
     notes: getVal('reg-notes'),
     itemsSummary,
     totalAmount: grandTotal,
+    paidPercentage,
     billingAddress: collectAddress('reg-billing'),
     deliveryAddress: sameAddress ? undefined : collectAddress('reg-delivery'),
   };
