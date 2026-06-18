@@ -38,6 +38,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   const detailSections = activeItems
     .map((item, idx) => {
       const product = PRODUCTS.find(p => p.id === item.productId)!;
+      const effectiveBand = item.specialBand ?? band;
       const itemQty = getItemQuantity(item);
       const itemSubtotal = getItemSubtotal(item, band);
 
@@ -45,7 +46,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
       const sizeRows = Object.entries(item.quantities)
         .filter(([, q]) => q > 0)
         .map(([size, qty]) => {
-          const unit = getUnitPrice(product, size, band) + extra;
+          const unit = getUnitPrice(product, size, effectiveBand) + extra;
           return `<tr>
           <td>${size}</td>
           <td class="num">${qty}</td>
@@ -59,13 +60,15 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
         ? `<tr class="note-row"><td colspan="4">${esc(product.note)}</td></tr>`
         : '';
 
+      const specialNote = item.specialBand ? ` &nbsp;·&nbsp; <em>condição especial</em>` : '';
+
       return `
     <div class="product-block">
       <div class="product-header">
         <span class="product-index">${String(idx + 1).padStart(2, '0')}</span>
         <div class="product-info">
           <span class="product-name">${esc(product.name)}</span>
-          <span class="product-meta">Cor: ${esc(item.color)} &nbsp;·&nbsp; ${itemQty} ${itemQty === 1 ? 'peça' : 'peças'} &nbsp;·&nbsp; Faixa ${fmtBand(band)}${extra > 0 ? ` &nbsp;·&nbsp; +${fmtCurrency(extra)}/peça` : ''}</span>
+          <span class="product-meta">Cor: ${esc(item.color)} &nbsp;·&nbsp; ${itemQty} ${itemQty === 1 ? 'peça' : 'peças'} &nbsp;·&nbsp; Faixa ${fmtBand(effectiveBand)}${extra > 0 ? ` &nbsp;·&nbsp; +${fmtCurrency(extra)}/peça` : ''}${specialNote}</span>
         </div>
         <span class="product-subtotal">${fmtCurrency(itemSubtotal)}</span>
       </div>
@@ -85,6 +88,7 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
   const summaryRows = activeItems
     .map(item => {
       const product = PRODUCTS.find(p => p.id === item.productId)!;
+      const effectiveBand = item.specialBand ?? band;
       const quantity = getItemQuantity(item);
       const sub = getItemSubtotal(item, band);
       const itemExtra = item.extra ?? 0;
@@ -92,13 +96,16 @@ export function generatePrintHTML(data: QuickQuoteData, band: PriceBand, logoUrl
         itemExtra > 0
           ? `<tr class="note-row"><td colspan="5">+ ${fmtCurrency(itemExtra)}/peça (adicional)</td></tr>`
           : '';
+      const specialNote = item.specialBand
+        ? `<tr class="note-row"><td colspan="5"><em>Condição especial — faixa ${fmtBand(item.specialBand)}</em></td></tr>`
+        : '';
       return `<tr>
       <td>${esc(product.name)}</td>
       <td>${esc(item.color)}</td>
       <td class="num">${quantity}</td>
-      <td class="num">${fmtCurrency(product.prices[band])}</td>
+      <td class="num">${fmtCurrency(product.prices[effectiveBand] + itemExtra)}</td>
       <td class="num">${fmtCurrency(sub)}</td>
-    </tr>${extraNote}`;
+    </tr>${extraNote}${specialNote}`;
     })
     .join('');
 

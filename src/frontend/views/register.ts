@@ -79,6 +79,8 @@ async function submitOrder(): Promise<void> {
     100,
     Math.max(0, parseInt((document.getElementById('reg-paid-pct') as HTMLInputElement).value) || 0),
   );
+  const totalItems =
+    parseInt((document.getElementById('reg-total-items') as HTMLInputElement).value) || total;
   const order: OrderRegistration = {
     clientName,
     clientType: getClientType(),
@@ -88,6 +90,7 @@ async function submitOrder(): Promise<void> {
     notes: getVal('reg-notes'),
     itemsSummary,
     totalAmount: grandTotal,
+    totalItems,
     paidPercentage,
     billingAddress: collectAddress('reg-billing'),
     deliveryAddress: sameAddress ? undefined : collectAddress('reg-delivery'),
@@ -120,6 +123,10 @@ export function syncFromQuoteTab(): void {
   const quoteName = (document.getElementById('client-name') as HTMLInputElement).value;
   const regName = document.getElementById('reg-client-name') as HTMLInputElement;
   if (quoteName && !regName.value) regName.value = quoteName;
+
+  const total = getTotalQuantity(getItems());
+  const totalItemsInput = document.getElementById('reg-total-items') as HTMLInputElement;
+  if (total > 0 && !totalItemsInput.value) totalItemsInput.value = String(total);
 }
 
 export function setupRegisterForm(): void {

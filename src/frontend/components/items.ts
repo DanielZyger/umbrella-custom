@@ -1,4 +1,5 @@
-import type { QuoteItem } from '../types';
+import { PRICE_BANDS } from '../types';
+import type { PriceBand, QuoteItem } from '../types';
 import { CATEGORIES, PRODUCTS } from '../data/catalog';
 import {
   fmtBand,
@@ -46,6 +47,26 @@ function renderItem(item: QuoteItem, index: number): string {
     </div>`
     : '';
 
+  const specialBandSection = product
+    ? `
+    <div class="special-band-row">
+      <label class="special-band-label">
+        <input type="checkbox" data-action="special-band-toggle" data-item-id="${item.id}" ${item.specialBand !== undefined ? 'checked' : ''}>
+        <span>Condição especial</span>
+      </label>
+      ${
+        item.specialBand !== undefined
+          ? `<div class="special-band-select-wrap">
+          <span class="special-band-hint">Aplicar faixa:</span>
+          <select data-action="special-band" data-item-id="${item.id}" class="select-input special-band-select">
+            ${PRICE_BANDS.map(b => `<option value="${b}"${b === item.specialBand ? ' selected' : ''}>${fmtBand(b)} peças</option>`).join('')}
+          </select>
+        </div>`
+          : ''
+      }
+    </div>`
+    : '';
+
   const sizeSection =
     product && item.color
       ? `
@@ -84,6 +105,7 @@ function renderItem(item: QuoteItem, index: number): string {
       </div>
       ${colorSection}
       ${sizeSection}
+      ${specialBandSection}
     </div>
   </div>`;
 }
@@ -165,6 +187,13 @@ export function setupItemsContainer(): void {
       updateSummary();
     } else if (target.matches('[data-action="extra"]')) {
       item.extra = parseFloat((target as HTMLInputElement).value) || 0;
+      updateSummary();
+    } else if (target.matches('[data-action="special-band-toggle"]')) {
+      item.specialBand = (target as HTMLInputElement).checked ? '100-199' : undefined;
+      renderItems();
+      updateSummary();
+    } else if (target.matches('[data-action="special-band"]')) {
+      item.specialBand = (target as HTMLSelectElement).value as PriceBand;
       updateSummary();
     }
   });

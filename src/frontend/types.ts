@@ -30,6 +30,7 @@ export interface QuoteItem {
   color: string;
   quantities: Record<string, number>;
   extra: number;
+  specialBand?: PriceBand;
 }
 
 export interface QuickQuoteData {
@@ -48,6 +49,7 @@ export interface OrderRegistration {
   notes: string;
   itemsSummary: string;
   totalAmount: number;
+  totalItems: number;
   paidPercentage: number;
   billingAddress: Address;
   deliveryAddress?: Address;
