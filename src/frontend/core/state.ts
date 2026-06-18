@@ -11,6 +11,10 @@ export function getItems(): QuoteItem[] {
   return _items;
 }
 
+export function setItems(items: QuoteItem[]): void {
+  _items = items.map(item => ({ ...item, id: String(_nextId++) }));
+}
+
 export function pushNewItem(): void {
   _items.push(newItem());
 }

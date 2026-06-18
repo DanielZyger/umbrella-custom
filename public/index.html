@@ -52,7 +52,30 @@
               id="client-name"
               placeholder="Nome do cliente ou turma"
               autocomplete="off"
+              list="saved-quotes-datalist"
             />
+            <datalist id="saved-quotes-datalist"></datalist>
+          </div>
+
+          <!-- Orçamentos salvos -->
+          <div id="saved-quotes-section" class="saved-quotes-section" style="display: none">
+            <div class="saved-quotes-row">
+              <label class="saved-quotes-label">Orçamentos salvos</label>
+              <div class="saved-quotes-controls">
+                <select id="saved-quotes-select" class="select-input saved-quotes-select">
+                  <option value="">— carregar orçamento salvo —</option>
+                </select>
+                <button
+                  type="button"
+                  id="delete-saved-btn"
+                  class="btn-delete-saved"
+                  title="Excluir orçamento salvo"
+                  style="display: none"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -82,7 +105,7 @@
         <!-- Ações -->
         <div class="actions-bar">
           <button type="button" id="clear-btn" class="btn-ghost">Limpar</button>
-          <button type="button" id="generate-btn" class="btn-primary" disabled>
+<button type="button" id="generate-btn" class="btn-primary" disabled>
             Gerar Orçamento →
           </button>
         </div>
