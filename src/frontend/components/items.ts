@@ -128,12 +128,10 @@ export function updateSummary(): void {
   document.getElementById('total-qty-display')!.textContent = String(total);
 
   const bandEl = document.getElementById('band-display')!;
-  const genBtn = document.getElementById('generate-btn') as HTMLButtonElement;
   const bandSection = document.getElementById('band-section')!;
 
   if (total === 0) {
     bandSection.style.display = 'none';
-    genBtn.disabled = true;
     return;
   }
 
@@ -143,11 +141,9 @@ export function updateSummary(): void {
     const missing = 25 - total;
     bandEl.textContent = `Mínimo não atingido — faltam ${missing} peça${missing !== 1 ? 's' : ''}`;
     bandEl.className = 'band-value band-warn';
-    genBtn.disabled = true;
   } else {
     bandEl.textContent = `Faixa ${fmtBand(band)} peças`;
     bandEl.className = 'band-value band-ok';
-    genBtn.disabled = false;
 
     items.forEach(item => {
       const qty = getItemQuantity(item);

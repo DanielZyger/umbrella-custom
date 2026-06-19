@@ -30,9 +30,6 @@ function validate(): string[] {
   const active = items.filter(i => i.productId && i.color && getItemQuantity(i) > 0);
   if (active.length === 0) errors.push('Adicione pelo menos um produto com quantidade.');
 
-  const total = getTotalQuantity(items);
-  if (total > 0 && total < 25) errors.push(`Pedido mínimo: 25 peças. Total atual: ${total}.`);
-
   return errors;
 }
 
@@ -74,8 +71,6 @@ function clearForm(): void {
   resetSavedSelect();
 }
 
-// ── Saved quotes UI ─────────────────────────────────────────────────────────
-
 function refreshSavedQuotesUI(): void {
   const names = getSavedNames();
   const section = document.getElementById('saved-quotes-section')!;
@@ -115,13 +110,10 @@ function loadQuoteFromSelect(name: string): void {
   document.getElementById('delete-saved-btn')!.style.display = '';
 }
 
-// ── Setup ────────────────────────────────────────────────────────────────────
-
 export function setupQuoteForm(): void {
   document.getElementById('generate-btn')!.addEventListener('click', generateQuote);
   document.getElementById('clear-btn')!.addEventListener('click', clearForm);
 
-  // Load from select
   const select = document.getElementById('saved-quotes-select') as HTMLSelectElement;
   select.addEventListener('change', () => {
     const name = select.value;
@@ -133,7 +125,6 @@ export function setupQuoteForm(): void {
     loadQuoteFromSelect(name);
   });
 
-  // Delete saved quote
   document.getElementById('delete-saved-btn')!.addEventListener('click', () => {
     const name = (document.getElementById('saved-quotes-select') as HTMLSelectElement).value;
     if (!name || !confirm(`Excluir orçamento salvo de "${name}"?`)) return;
